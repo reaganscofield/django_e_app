@@ -21,19 +21,19 @@ class Users(models.Model):
 
 class Products(models.Model):
     # id to be uuid
-    name = models.CharField(max_length=100, null=False, default=None)
+    name = models.CharField(max_length=100, null=True, default=None)
     price = models.FloatField(null=False, default=None)
     file = models.ImageField(upload_to=uploadFile, blank=False, null=False)
 
     active = models.BooleanField(null=False, default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField()
-    deleted_at = models.DateTimeField()
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now_add=False, blank=True, null=True, default=None)
+    deleted_at = models.DateField(auto_now_add=False, blank=True, null=True, default=None)
 
     def __str__(self):
         return self.name
 
-class AddCard(models.Models):
+class AddCard(models.Model):
     # id to be uuid
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
@@ -50,7 +50,7 @@ class AddCard(models.Models):
         return self.id
    
 
-class Bought(models.Models):
+class Bought(models.Model):
     # id to be uuid
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
