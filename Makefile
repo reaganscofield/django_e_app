@@ -1,8 +1,8 @@
-d_build:
+build:
 	@sudo docker-compose build
-d_mkmg:
+migrations:
 	@sudo docker-compose run web e_project/manage.py makemigrations
-d_mig:
+migrate:
 	@sudo docker-compose run web e_project/manage.py migrate
-d_run:
+run:
 	@sudo docker-compose up
