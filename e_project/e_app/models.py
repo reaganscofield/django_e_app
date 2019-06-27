@@ -1,6 +1,8 @@
 import os
+import uuid
 import random
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 def getFileNameExt(filepath):
@@ -15,12 +17,11 @@ def uploadFile(instance, filename):
     return "{finalName}".format(finalName=finalName)
 
 # Create your models here.
-class Users(models.Model):
-    pass
+class Users(AbstractUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
-
 class Products(models.Model):
-    # id to be uuid
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, null=True, default=None)
     price = models.FloatField(null=False, default=None)
     file = models.ImageField(upload_to=uploadFile, blank=False, null=False)
@@ -34,7 +35,7 @@ class Products(models.Model):
         return self.name
 
 class AddCard(models.Model):
-    # id to be uuid
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
     product_name = models.CharField(max_length=100, null=False, default=None)
@@ -51,7 +52,7 @@ class AddCard(models.Model):
    
 
 class Bought(models.Model):
-    # id to be uuid
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
     payments_id = models.CharField(max_length=100)

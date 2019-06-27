@@ -29,8 +29,9 @@ class SerializersProducts(serializers.ModelSerializer):
 class SerializersAddCard(serializers.ModelSerializer):
     class Meta:
         model = AddCard
-        fields = ()
-    pass
+        fields = "__all__"
+        read_only_fields = ["active", "created_at", "updated_at", "deleted_at"]
+ 
 
 class SerializersBought(serializers.ModelSerializer):
     class Meta:

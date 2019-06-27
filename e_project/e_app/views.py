@@ -3,7 +3,7 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .serializers import SerializersProducts, SerializersUsers
+from .serializers import SerializersProducts, SerializersUsers, SerializersAddCard
 from .models import Products, Users, AddCard, Bought
 
 class ProductSerializer(viewsets.ModelViewSet):
@@ -43,4 +43,8 @@ class ProductSerializer(viewsets.ModelViewSet):
         except Products.DoesNotExist:
             raise Http404
 
+
+class AddCardView(viewsets.ModelViewSet):
+    queryset = AddCard.objects.all()
+    serializer_class = SerializersAddCard
 
