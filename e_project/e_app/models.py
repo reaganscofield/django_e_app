@@ -44,8 +44,8 @@ class AddCard(models.Model):
 
     active = models.BooleanField(null=False, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField()
-    deleted_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now_add=False, blank=True, null=True, default=None)
+    deleted_at = models.DateTimeField(auto_now_add=False, blank=True, null=True, default=None)
 
     def __str__(self):
         return self.id
@@ -63,8 +63,8 @@ class Bought(models.Model):
 
     active = models.BooleanField(null=False, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField()
-    deleted_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now_add=False, blank=True, null=True, default=None)
+    deleted_at = models.DateTimeField(auto_now_add=False, blank=True, null=True, default=None)
 
     def __str__(self):
         return self.id

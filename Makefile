@@ -6,3 +6,5 @@ migrate:
 	@sudo docker-compose run web e_project/manage.py migrate
 run:
 	@sudo docker-compose up
+user:
+	@sudo docker-compose run web e_project/manage.py createsuperuser

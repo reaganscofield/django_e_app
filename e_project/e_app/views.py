@@ -48,3 +48,23 @@ class AddCardView(viewsets.ModelViewSet):
     queryset = AddCard.objects.all()
     serializer_class = SerializersAddCard
 
+    def create(self, request):
+        product_name = request.data["product_name"]
+        serializer = SerializersAddCard(data = request.data)
+        if AddCard.objects.filter(product_name=product_name).exists():
+            addCardObj = AddCard.objects.get(product_name=product_name)
+            if serializer.is_valid(raise_exception=True):
+                product_name = serializer["product_name"].value 
+                num_of_items = serializer["number_of_items"].value
+                if addCardObj:
+                    total_items = addCardObj.number_of_items + int(num_of_items)
+                    addCardObj.number_of_items = total_items
+                    addCardObj.save()
+                    return Response({"success": serializer.data}, status=status.HTTP_200_OK)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
