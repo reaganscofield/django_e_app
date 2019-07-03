@@ -3,7 +3,13 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .serializers import SerializersProducts, SerializersUsers, SerializersAddCard
+from rest_framework import generics
+
+from .serializers import ( 
+    SerializersProducts, SerializersUsers, 
+    SerializersAddCard, SerializersBought 
+)
+
 from .models import Products, Users, AddCard, Bought
 
 class ProductSerializer(viewsets.ModelViewSet):
@@ -68,3 +74,11 @@ class AddCardView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class BoughtView(viewsets.ModelViewSet):
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought
+
+
+class BoughtList(generics.ListCreateAPIView):
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought

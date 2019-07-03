@@ -16,14 +16,14 @@ def uploadFile(instance, filename):
     finalName = '{new_fileName}{ext}'.format(new_fileName=new_fileName, ext=ext)
     return "{finalName}".format(finalName=finalName)
 
-# Create your models here.
+
 class Users(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
 class Products(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, null=True, default=None)
-    price = models.FloatField(null=False, default=None)
+    price = models.FloatField(null=True, default=None)
     file = models.ImageField(upload_to=uploadFile, blank=False, null=False)
 
     active = models.BooleanField(null=False, default=True)
@@ -38,9 +38,9 @@ class AddCard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
-    product_name = models.CharField(max_length=100, null=False, default=None)
-    product_price = models.FloatField(null=False, default=None)
-    number_of_items = models.IntegerField(null=False, default=None)
+    product_name = models.CharField(max_length=100, null=True, default=None)
+    product_price = models.FloatField(null=True, default=None)
+    number_of_items = models.IntegerField(null=True, default=1)
 
     active = models.BooleanField(null=False, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -56,7 +56,7 @@ class Bought(models.Model):
     product_id = models.ForeignKey(Products, on_delete="models.CASCADE")
     customer_id = models.ForeignKey(Users, on_delete="models.CASCADE")
     payments_id = models.CharField(max_length=100)
-    total_paid = models.FloatField(null=False, default=None)
+    total_paid = models.FloatField(null=True, default=None)
     total_tax = models.FloatField(null=True, default=None)
     total_discount = models.FloatField(null=True, default=None)
     paid_at = models.DateTimeField(auto_now_add=True)
@@ -69,3 +69,4 @@ class Bought(models.Model):
     def __str__(self):
         return self.id
     
+ 

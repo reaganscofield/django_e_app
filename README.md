@@ -1,12 +1,8 @@
-```
-sudo docker run -p 5050:80  -e "PGADMIN_DEFAULT_EMAIL=name@example.com" -e "PGADMIN_DEFAULT_PASSWORD=admin"  -d dpage/pgadmin4
-```
+# README.md
 
-environ.py
-
-```
+```python
 DB_ENGINE = 'django.db.backends.postgresql'
-DB_NAME = 'postgres' 
+DB_NAME = 'postgres'
 DB_USER = 'postgres'
 DB_PASSWORD = 'postgres'
 DB_HOST = 'db'
@@ -15,7 +11,7 @@ DB_PORT = 5432
 
 second works
 
-```
+```Python
 DB_ENGINE = 'django.db.backends.postgresql'
 DB_NAME = 'e_data' #'e_app'
 DB_USER = 'postgres'

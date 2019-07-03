@@ -1,3 +1,4 @@
 /XDG_CACHE_HOME
 /virtual_env
 /e_project/environ.py
+/.vscode
