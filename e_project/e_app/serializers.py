@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Products, Users, AddCard, Bought
+from .models import Products, AddCard, Bought
 
 class SerializersProducts(serializers.ModelSerializer):
     class Meta:
@@ -56,8 +56,31 @@ class SerializersBought(serializers.ModelSerializer):
     
 
 
+
+
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User as Users
+
+
 class SerializersUsers(serializers.ModelSerializer):
+    
     class Meta:
         model = Users
-        fields = ()
-    pass
+        fields = "__all__" #("id", "username", "email", "is_active", "password")
+        read_only_fields = ["id"]
+
+    def validate(self, data):
+        username = data.get("username")
+        password = data.get("password")
+
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if user:
+                data["user"] = user
+            else:
+                raise exceptions.ValidationError("wrong credentials")
+        else:
+            raise exceptions.ValidationError("password & username are required")
+        
+        return data
+    

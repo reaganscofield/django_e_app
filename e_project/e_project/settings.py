@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'e_app',
     'rest_framework.authtoken',
-    'rest_auth'
 ]
 
 MIDDLEWARE = [
@@ -93,9 +92,9 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
-        #'rest_framework.authentication.SessionAuthentication',
-        #'rest_framework.authentication.TokenAuthentication'
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
     )
 }
 

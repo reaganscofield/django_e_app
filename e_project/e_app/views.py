@@ -10,7 +10,7 @@ from .serializers import (
     SerializersAddCard, SerializersBought 
 )
 
-from .models import Products, Users, AddCard, Bought
+from .models import Products, Users, AddCard, Bought, Users
 
 class ProductSerializer(viewsets.ModelViewSet):
     queryset = Products.objects.all()
@@ -74,11 +74,73 @@ class AddCardView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BoughtView(viewsets.ModelViewSet):
+
+class BoughtView(generics.ListAPIView):
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought
+
+    def list(self, request):
+        queryset = Bought.objects.all()
+        serializer = SerializersBought(queryset, many=True)
+        return Response(serializer.data)
+
+class BoughtCreate(generics.CreateAPIView):
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought
+
+    def post(self, request, format=None):
+        serializer = SerializersBought(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BoughtUpdate(generics.RetrieveUpdateAPIView):
+    lookup_field = 'id'
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought
+
+class BoughtDetails(generics.RetrieveAPIView):
+    lookup_field = 'id'
+    queryset = Bought.objects.all()
+    serializer_class  = SerializersBought
+
+class BoughtDestroy(generics.RetrieveDestroyAPIView):
+    lookup_field = 'id'
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
 
 
-class BoughtList(generics.ListCreateAPIView):
-    queryset = Bought.objects.all()
-    serializer_class  = SerializersBought
+class UsersView(generics.ListCreateAPIView):
+    queryset = Users.objects.all()
+    serializer_class = SerializersUsers
+
+
+
+
+from rest_framework.views import APIView
+from django.contrib.auth import login as Login, logout as Logout
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+
+class LoginView(APIView):
+    
+    def post(self, request):
+        serializer = SerializersUsers(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validate_data["user"]
+        Login(request, user)
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({"token": token.key}, status=200)
+
+
+class LougoutView(APIView):
+    authentication_classes = (TokenAuthentication)
+
+    def post(self, request):
+        Logout(request)
+
+        return Response({"success": "logout"}, status=200)
+
