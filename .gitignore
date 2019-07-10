@@ -2,3 +2,7 @@
 /virtual_env
 /e_project/environ.py
 /.vscode
+/.idea
+/e_project/e_project/__pycache__
+/e_project/e_app/__pycache__
+/e_project/e_app/migrations

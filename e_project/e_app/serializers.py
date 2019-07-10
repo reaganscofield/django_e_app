@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Products, AddCard, Bought
+from .models import Products, AddCard, Bought, Users
+from rest_framework.authtoken.models import Token
 
 class SerializersProducts(serializers.ModelSerializer):
     class Meta:
@@ -56,31 +57,53 @@ class SerializersBought(serializers.ModelSerializer):
     
 
 
-
-
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User as Users
-
-
 class SerializersUsers(serializers.ModelSerializer):
+
+    class Meta:
+        model = Users
+        fields = ('id', 'username', 'email', 'password', 'last_name', 'first_name', 'is_active', 'date_joined')
+        extra_kwargs = {'password': {'write_only': True}}
+        read_only_fields = ["id", "is_active", "date_joined"]
+
+    def validate(self, data):
+        if data["email"] == "" or data["email"] == None:
+            raise serializers.ValidationError("email is required")
+        if data["username"] == "" or data["username"] == None:
+            raise serializers.ValidationError("username is required")
+        if data["password"] == "" or data["password"] == None:
+            raise serializers.ValidationError("email is required")
+        return data
+
+    def create(self, validated_data):
+        user = Users(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            is_active=False
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        Token.objects.create(user=user)
+        return user
+    
+    
+class UpdateSerializersUsers(serializers.ModelSerializer):
     
     class Meta:
         model = Users
-        fields = "__all__" #("id", "username", "email", "is_active", "password")
-        read_only_fields = ["id"]
+        fields = ('id', 'username', 'email', 'last_name', 'first_name', 'is_active', 'date_joined')
+        extra_kwargs = {'password': {'write_only': True}}
+        read_only_fields = ["id", "is_active", "date_joined", 'email', 'username']
 
+    
     def validate(self, data):
-        username = data.get("username")
-        password = data.get("password")
-
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if user:
-                data["user"] = user
-            else:
-                raise exceptions.ValidationError("wrong credentials")
+        if data["first_name"] == None or data["first_name"] == "":
+            raise serializers.ValidationError("first name is required")
         else:
-            raise exceptions.ValidationError("password & username are required")
+            data["first_name"] = data["first_name"].capitalize()
+        if data["last_name"] == None or data["last_name"] == "":
+            raise serializers.ValidationError("last name is required")
+        else:
+            data["last_name"] = data["last_name"].capitalize()
         
         return data
-    
+

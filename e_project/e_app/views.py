@@ -2,17 +2,24 @@ import datetime
 from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework import generics
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth import logout as Logout
+from django.contrib.auth.models import update_last_login
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+from .models import Products, Users, AddCard, Bought, Users
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from .permissions import  IsOwner
 from .serializers import ( 
-    SerializersProducts, SerializersUsers, 
+    SerializersProducts, SerializersUsers, UpdateSerializersUsers,
     SerializersAddCard, SerializersBought 
 )
 
-from .models import Products, Users, AddCard, Bought, Users
 
 class ProductSerializer(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Products.objects.all()
     serializer_class = SerializersProducts
 
@@ -100,6 +107,7 @@ class BoughtUpdate(generics.RetrieveUpdateAPIView):
     lookup_field = 'id'
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
+    permission_classes = [IsAuthenticated]
 
 class BoughtDetails(generics.RetrieveAPIView):
     lookup_field = 'id'
@@ -119,28 +127,45 @@ class UsersView(generics.ListCreateAPIView):
 
 
 
-from rest_framework.views import APIView
-from django.contrib.auth import login as Login, logout as Logout
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
+class UsersRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    lookup_field = 'id'
+    queryset = Users.objects.all()
+    serializer_class = UpdateSerializersUsers
+
+
+class UserCreate(generics.CreateAPIView):
+    authentication_classes = ()
+    permission_classes = ()
+    serializer_class = SerializersUsers
+
 
 class LoginView(APIView):
-    
-    def post(self, request):
-        serializer = SerializersUsers(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validate_data["user"]
-        Login(request, user)
-        token, created = Token.objects.get_or_create(user=user)
+    permission_classes = ()
 
-        return Response({"token": token.key}, status=200)
-
+    def post(self, request,):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        if username == "" and password == "":
+            return Response({
+                "error": "username and password is required"
+            })
+        user = authenticate(
+            username=username, 
+            password=password
+        )
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            update_last_login(None, token.user)
+            return Response({"token": token.key})
+        else:
+            return Response({
+                "error": "Wrong Credentials"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class LougoutView(APIView):
-    authentication_classes = (TokenAuthentication)
-
     def post(self, request):
         Logout(request)
 
         return Response({"success": "logout"}, status=200)
-
