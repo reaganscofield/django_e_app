@@ -3,6 +3,7 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework import generics
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import logout as Logout
@@ -10,21 +11,30 @@ from django.contrib.auth.models import update_last_login
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from .models import Products, Users, AddCard, Bought, Users
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from .permissions import  IsOwner
+from .customer_permissions import  IsOwner, IsAdminUserOrReadOnly, IsOwnerUser
+from rest_framework.permissions import (
+    IsAuthenticated, 
+    IsAdminUser, 
+    AllowAny, 
+    IsAuthenticatedOrReadOnly
+)
 from .serializers import ( 
-    SerializersProducts, SerializersUsers, UpdateSerializersUsers,
-    SerializersAddCard, SerializersBought 
+    SerializersProducts, 
+    SerializersUsers, 
+    UpdateSerializersUsers,
+    SerializersAddCard, 
+    SerializersBought 
 )
 
 
 class ProductSerializer(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUserOrReadOnly]
     queryset = Products.objects.all()
     serializer_class = SerializersProducts
 
     def get_queryset(self):
          return Products.objects.all()
+ 
 
     def create(self, request):
         serializer = SerializersProducts(data = request.data, context = {'request': request})
@@ -40,7 +50,7 @@ class ProductSerializer(viewsets.ModelViewSet):
             getObj.name = request.data["name"]
             getObj.price = request.data["price"]
             getObj.file = request.data["file"]
-            getObj.created_at = datetime.datetime.now()
+            getObj.updated_at = datetime.datetime.now()
             getObj.save()
             return Response({"success": getObj}, status=status.HTTP_200_OK)
 
@@ -55,6 +65,29 @@ class ProductSerializer(viewsets.ModelViewSet):
                     return Response({"success": "success deleted product"}, status=status.HTTP_200_OK)
         except Products.DoesNotExist:
             raise Http404
+
+
+class ProductsSearch(generics.ListAPIView):
+    serializer_class = SerializersProducts
+
+    def get_queryset(self):
+        qs = Products.objects.all()
+
+        name = self.request.query_params.get('name', None)
+        price = self.request.query_params.get('price', "0")
+        created_at = self.request.query_params.get('created_at', None)
+        active = self.request.query_params.get("active", None)
+
+   
+        qs = qs.filter(
+            Q(name=name) |
+            Q(price=int(price)) |
+            Q(created_at=created_at) |
+            Q(active=active)
+        )
+
+        return qs
+
 
 
 class AddCardView(viewsets.ModelViewSet):
@@ -85,15 +118,17 @@ class AddCardView(viewsets.ModelViewSet):
 class BoughtView(generics.ListAPIView):
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
-        queryset = Bought.objects.all()
+        queryset = Bought.objects.filter(customer_id=request.user)
         serializer = SerializersBought(queryset, many=True)
         return Response(serializer.data)
 
 class BoughtCreate(generics.CreateAPIView):
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
         serializer = SerializersBought(data=request.data)
@@ -107,27 +142,37 @@ class BoughtUpdate(generics.RetrieveUpdateAPIView):
     lookup_field = 'id'
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+
 
 class BoughtDetails(generics.RetrieveAPIView):
     lookup_field = 'id'
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
+    permission_classes = [IsAuthenticated, IsOwner]
 
 class BoughtDestroy(generics.RetrieveDestroyAPIView):
     lookup_field = 'id'
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    
 
 
 class UsersView(generics.ListCreateAPIView):
     queryset = Users.objects.all()
     serializer_class = SerializersUsers
-
-
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 
 class UsersRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, IsOwnerUser]
+    lookup_field = 'id'
+    queryset = Users.objects.all()
+    serializer_class = UpdateSerializersUsers
+
+
+class UsersRetrieveDestroy(generics.RetrieveDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     lookup_field = 'id'
     queryset = Users.objects.all()

@@ -67,6 +67,6 @@ class Bought(models.Model):
     deleted_at = models.DateTimeField(auto_now_add=False, blank=True, null=True, default=None)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
     
  

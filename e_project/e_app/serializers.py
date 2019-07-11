@@ -33,6 +33,7 @@ class SerializersProducts(serializers.ModelSerializer):
 
 
 class SerializersAddCard(serializers.ModelSerializer):
+
     class Meta:
         model = AddCard
         fields = "__all__"

@@ -6,13 +6,20 @@ from django.conf.urls import url
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('e_app.urls'), name='e_app'),
-    path('api/bought', views.BoughtView.as_view(), name='bought-view'),
+
+    url(r'^api/products_search/', views.ProductsSearch.as_view(), name="products-search"),
+   
+    path('api/bought_list', views.BoughtView.as_view(), name='bought-view'),
     path('api/bought_create', views.BoughtCreate.as_view(), name='bought-create'),
     url(r'^api/bought_update/(?P<id>[0-9a-f-]+)/$', views.BoughtUpdate.as_view(), name='bought-update'),
-    url(r'^api/bought_details/(?P<id>[0-9a-f-]+)/$', views.BoughtUpdate.as_view(), name='bought-details'),
+    url(r'^api/bought_details/(?P<id>[0-9a-f-]+)/$', views.BoughtDetails.as_view(), name='bought-details'),
     url(r'^api/bought_destroy/(?P<id>[0-9a-f-]+)/$', views.BoughtDestroy.as_view(), name='bought-destroy'),
-    url(r'^api/users_actions/(?P<id>[0-9a-f-]+)/$', views.UsersRetrieveUpdate.as_view(), name="users-retrieve-update"),
+
+    url(r'^api/users_details_or_update/(?P<id>[0-9a-f-]+)/$', views.UsersRetrieveUpdate.as_view(), name="users-retrieve-update"),
+    path('api/users_list', views.UsersView.as_view(), name='users-view'),
     path('api/users_create/', views.UserCreate.as_view(), name="user-create"),
+    url(r'^api/users_details_or_destroy/(?P<id>[0-9a-f-]+)/$', views.UsersRetrieveDestroy.as_view(), name="users-retrieve-destroy"),
+
     path('api/system/login', views.LoginView.as_view(), name="login-view"),
     path('api/system/logout', views.LougoutView.as_view(), name="logout-view"),
 ]
