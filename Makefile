@@ -10,3 +10,5 @@ user:
 	@sudo docker-compose run web e_project/manage.py createsuperuser
 shell:
 	@sudo docker-compose run web e_project/manage.py shell
+test:
+	@sudo docker-compose run web e_project/manage.py test e_app
