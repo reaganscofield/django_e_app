@@ -4,8 +4,9 @@ import datetime
 from .models import *
 from rest_framework import status
 from rest_framework.reverse import reverse as api_reverse
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, APIClient
 import json
+from .views import BoughtDetails, ProductSerializer, BoughtCreate
 
 factory = APIRequestFactory()
 
@@ -25,6 +26,7 @@ class TestingAPITestCase(APITestCase):
             active = True,
             deleted_at = None
         )
+
 
         addCard = AddCard.objects.create(
             product_id = products,
@@ -88,17 +90,72 @@ class TestingAPITestCase(APITestCase):
 
 
     def test_bought_create(self):
+        pass
+
+    def test_bought_views(self):
+        userObject = Users(username="new_user", email="new_user@outlook.com")
+        userObject.set_password("someRandomPassword123456")
+        userObject.save()
+
+        products = Products.objects.create(
+            name = "Artificial Intelligence",
+            price = 234.0,
+            file = "test.jpg",
+            created_at = datetime.datetime.now(),
+            updated_at = None,
+            active = True,
+            deleted_at = None
+        )
+
+        bought = Bought.objects.create(
+            product_id = products,
+            customer_id = userObject,
+            payments_id = "6aa3fb27-83f1-427e-a245-10e66892795f",
+            total_paid = 2345,
+            total_tax = 34.34,
+            total_discount = 12.0,
+            paid_at = datetime.datetime.now(),
+            active = True,
+            created_at = datetime.datetime.now(),
+            updated_at = None,
+            deleted_at = None
+        )
+        bought.save()
+
+
+        bought_view_get = BoughtDetails.as_view()
+        request_get = factory.get(api_reverse("bought-details", args=(bought.id,)))
+        response_get = bought_view_get(request_get)
+
+
+
+
+
         data = {
-            'name': "Artificial Intelligence",
-            'price': 234.0,
-            'file': "test.jpg",
-            'created_at': None,
+            'product_id':  "6aa3fb27-83f1-427e-a245-10e66892795f",
+            'customer_id':  "6aa3fb27-83f1-427e-a245-10e66892795f",
+            'payments_id':  "6aa3fb27-83f1-427e-a245-10e66892795f",
+            'total_paid':  2345,
+            'total_tax':  34.34,
+            'total_discount':  12.0,
+            'paid_at':  datetime.datetime.now(),
+            'active': True,
+            'created_at':  datetime.datetime.now(),
             'updated_at':  None,
-            'active':  True,
-            'deleted_at': None
+            'deleted_at':  None
         }
-        request = factory.post('products/', json.dumps(data), content_type='application/json')
-        print(request)
+        clientPostMethod = APIClient()
+        reverseUrl = api_reverse("bought-create")
+        request_post = clientPostMethod.post(reverseUrl, data, format='json')
+        assert 200 == request_post.status_code
+        print(' #### ', request_post)
+
+  
+   
+        
+
+
+
 
 
 
