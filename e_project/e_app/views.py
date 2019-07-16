@@ -27,6 +27,16 @@ from .serializers import (
 )
 
 
+####
+from django.http.response import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from .models import Message                                            
+from .serializers import MessageSerializer  
+
+
+
+
 class ProductSerializer(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsAdminUserOrReadOnly]
     queryset = Products.objects.all()
@@ -214,3 +224,37 @@ class LougoutView(APIView):
         Logout(request)
 
         return Response({"success": "logout"}, status=200)
+
+
+
+@csrf_exempt                                                    
+def user_list(request, id=None):
+    if request.method == 'GET':
+        if id:                                                              
+            users = Users.objects.filter(id=id)        
+        else:
+            users = Users.objects.all()    
+        serializer = SerializersUsers(users, many=True, context={'request': request}) 
+        return JsonResponse(serializer.data, safe=False)    
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)         
+        serializer = UserSerializer(data=data)      
+        if serializer.is_valid():
+            serializer.save()     
+            return JsonResponse(serializer.data, status=201)    
+        return JsonResponse(serializer.errors, status=400)  
+
+
+@csrf_exempt
+def message_list(request, sender=None, receiver=None):
+    if request.method == 'GET':
+        messages = Message.objects.filter(sender_id=sender, receiver_id=receiver)
+        serializer = MessageSerializer(messages, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False)
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = MessageSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)

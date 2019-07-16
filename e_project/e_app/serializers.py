@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Products, AddCard, Bought, Users
+from .models import Products, AddCard, Bought, Users, Message
 from rest_framework.authtoken.models import Token
 
 class SerializersProducts(serializers.ModelSerializer):
@@ -107,4 +107,13 @@ class UpdateSerializersUsers(serializers.ModelSerializer):
             data["last_name"] = data["last_name"].capitalize()
         
         return data
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = serializers.SlugRelatedField(many=False, slug_field='username', queryset=Users.objects.all())
+    receiver = serializers.SlugRelatedField(many=False, slug_field='username', queryset=Users.objects.all())
+
+    class Meta:
+        model = Message
+        fields = ['sender', 'receiver', 'message', 'timestamp']
 
