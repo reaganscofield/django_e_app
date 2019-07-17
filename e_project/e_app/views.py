@@ -248,7 +248,9 @@ def user_list(request, id=None):
 @csrf_exempt
 def message_list(request, sender=None, receiver=None):
     if request.method == 'GET':
-        messages = Message.objects.filter(sender_id=sender, receiver_id=receiver)
+        messages = ( Message.objects.filter(sender_id=sender).filter(receiver_id=receiver) | 
+                     Message.objects.filter(sender_id=receiver).filter(receiver_id=sender)
+                    )
         serializer = MessageSerializer(messages, many=True, context={'request': request})
         return JsonResponse(serializer.data, safe=False)
     elif request.method == 'POST':
