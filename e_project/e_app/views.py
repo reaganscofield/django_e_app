@@ -219,6 +219,16 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+class IfLoggedIn(generics.ListAPIView):
+    queryset = Users.objects.all()
+    serializer_class = SerializersUsers
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def get(self, request):
+        queryset = Users.objects.get(username=request.user)
+        serializer = SerializersUsers(queryset)
+        return Response(serializer.data)
+
 class LougoutView(APIView):
     def post(self, request):
         Logout(request)
@@ -260,3 +270,5 @@ def message_list(request, sender=None, receiver=None):
             serializer.save()
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
+
+

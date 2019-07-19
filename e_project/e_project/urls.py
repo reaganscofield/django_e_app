@@ -22,10 +22,12 @@ urlpatterns = [
 
     path('api/system/login', views.LoginView.as_view(), name="login-view"),
     path('api/system/logout', views.LougoutView.as_view(), name="logout-view"),
+    path('api/system/is_logged_in', views.IfLoggedIn.as_view(), name="loogged-in"),
 
 
     url(r'^api/messages/(?P<sender>[0-9a-f-]+)/(?P<receiver>[0-9a-f-]+)/', views.message_list, name='message-detail'), 
     path('api/messages/', views.message_list, name='message-list'), 
     url(r'^api/users_message/(?P<id>[0-9a-f-]+)/$', views.user_list, name='user-detail'), 
     path('api/users_message/', views.user_list, name='user-list'),
+   
 ]
