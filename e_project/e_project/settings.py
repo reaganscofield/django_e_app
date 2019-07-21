@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'e_app',
     'rest_framework.authtoken',
     'corsheaders'
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'e_project.wsgi.application'
+ASGI_APPLICATION = "e_project.routing.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
 
 
 # Database

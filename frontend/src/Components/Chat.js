@@ -3,6 +3,11 @@ import './Chat.css'
 import axios from 'axios'
 import JWTDecoder from 'jwt-decode';
 
+
+
+import io from "socket.io-client"
+
+
 export default class Chat extends Component {
     constructor(props) {
         super(props)
