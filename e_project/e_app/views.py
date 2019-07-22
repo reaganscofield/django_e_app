@@ -271,4 +271,3 @@ def message_list(request, sender=None, receiver=None):
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
 
-

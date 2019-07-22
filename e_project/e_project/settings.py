@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 from environ import *
 
+#from .routing import application
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,11 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'rest_framework',
     'e_app',
     'rest_framework.authtoken',
     'corsheaders'
-    'channels',
+    
 ]
 
 MIDDLEWARE = [
@@ -77,16 +80,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'e_project.wsgi.application'
-ASGI_APPLICATION = "e_project.routing.application"
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("localhost", 6379)],
-        },
-    },
-}
+
+ASGI_APPLICATION =  "e_project.routing.application"
+
+# pip install asgi_redis
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("localhost", 6379)],
+#         },
+#     },
+# }
 
 
 # Database

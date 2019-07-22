@@ -6,32 +6,46 @@ from .serializers import MessageSerializer, SerializersUsers
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 
+from django.http.response import JsonResponse
 
+# from channels.layers import get_channel_layer
 
-from channels.layers import get_channel_layer
-
-channel_layer = get_channel_layer()
+# channel_layer = get_channel_layer()
 
 
 class ChatConsumer(AsyncConsumer):
+
     async def websocket_connect(self, event):
         print("event connected :: ", event)
-    
 
-        sender_id = self.scope['url_route']['kwargs']['sender']
-        receiver_id = self.scope['url_route']['kwargs']['receiver']
-
-        message_obj = await self.get_messages_obj(sender_id, receiver_id
-
-        #room_chat = f""
-        
         await self.send({
             "type": "websocket.accept"
         })
 
+    
+        #sender_id = self.scope['url_route']['kwargs']['sender']
+        receiver_id = self.scope['url_route']['kwargs']['receiver']
+        sender_id =  '152ceaa2-16f7-4817-a6f3-dac3a2a5ee1e' #self.scope['user']
+
+        print(" rrrr ", receiver_id)
+       
+
+        
+
+        message_obj = await self.get_messages_obj(sender_id, receiver_id)
+
+        print(message_obj)
+
+
+        # print("Obj get ", message_obj)
+
+        #room_chat = f""
+        
+
+        
         await self.send({
             "type": "websocket.send",
-            "message":  message_obj #"Whatever Message to be send"
+            "text": json.dumps(message_obj) 
         })
 
     
@@ -50,33 +64,47 @@ class ChatConsumer(AsyncConsumer):
             message = data_parse.get("message")
 
 
-        response = {
-            "sender": sender,
-            "receiver": receiver,
-            "message": message
-        }
+            response = {
+                "sender": sender,
+                "receiver": receiver,
+                "message": message
+            }
 
-        await self.send({
-            "type": "websocket.accept"
-        })
+            self.object_create(response)
 
-        await self.send({
-            "type": "websocket.send",
-            "message": json.dumps(response)
-        })
+            await self.send({
+                "type": "websocket.accept"
+            })
+
+            await self.send({
+                "type": "websocket.send",
+                "text": json.dumps(response)
+            })
+
+
+
 
     async def websocket_disconnect(self, event):
         print("event disconnected :: ", event)
 
 
     @database_sync_to_async
-    def get_messages_obj(self, sender_id, receiver_id):
+    def get_messages_obj(self, sender, receiver):
         messages = ( 
-            Message.objects.filter(sender_id=sender).filter(receiver_id=receiver) | 
-            Message.objects.filter(sender_id=receiver).filter(receiver_id=sender)
+            Message.objects.filter(sender=sender).filter(receiver=receiver) | 
+            Message.objects.filter(sender=receiver).filter(receiver=sender)
         )
         serializer = MessageSerializer(messages, many=True)
         return  JsonResponse(serializer.data, safe=False)   # messages
+
+    @database_sync_to_async
+    def object_create(self, request):
+        data = JSONParser().parse(request)
+        serializer = MessageSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
 
 
 

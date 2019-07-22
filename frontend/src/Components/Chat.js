@@ -2,11 +2,10 @@ import React, { Component } from 'react'
 import './Chat.css'
 import axios from 'axios'
 import JWTDecoder from 'jwt-decode';
+import io from "socket.io-client";
 
 
-
-import io from "socket.io-client"
-
+import { w3cwebsocket as Socket} from "websocket";
 
 export default class Chat extends Component {
     constructor(props) {
@@ -29,6 +28,12 @@ export default class Chat extends Component {
           this.setState({ UserObj: UserObj });
         }
         this.queryUsers();
+
+        //const socket = 'ws://';
+       // console.log("my socket ", socket, window.location.host, window.location.pathname)
+
+        const { selectedContact } = this.state;
+        //this.queryReceiver(User.id, selectedContact.id);
     }
 
     queryUsers = () => {
@@ -42,36 +47,101 @@ export default class Chat extends Component {
     }
 
     queryReceiver = (sender, receiver) => {
-        axios.get(`http://localhost:4500/api/messages/${sender}/${receiver}/`).then(response => {
-            if(response){
-              this.setState({
-                  receiverStories: response.data
-              });
-            }
-        });
+        const socket_host = 'ws://';
+        const host = '127.0.0.1:4500/' // window.location.host;
+        const path = 'api/messages/' // window.location.pathname;
+        const url_chat = `${socket_host}${host}${path}${receiver}`;
+
+        const clientSocket = new Socket(url_chat);
+
+        clientSocket.onopen = (e) => {
+          // console.log("connection etablished", e);
+        }
+
+        // clientSocket.onmessage = (event) => {
+        //   console.log(event)
+        // }
+        //  console.log("uuu ", url_chat)
+
+
+     
     }
 
-    handleChange = (e)  => {
-      this.setState({ [e.target.name]: e.target.value });
-    }
 
     handleEnter = (e) => {
       const { message, selectedContact } = this.state;
       if(e.charCode === 13){
+
         const messageData = {
           sender: this.state.UserObj.username, 
           receiver: selectedContact.username,
           message: message
         }
-        axios.post(`http://localhost:4500/api/messages/`, messageData).then((response) => {
-          const sent = response.data;
-          this.state.receiverStories.push(sent);
-        }) 
+
+        const socket_host = 'ws://';
+        const host = '127.0.0.1:4500/' 
+        const path = 'api/messages/';
+        const url_chat = `${socket_host}${host}${path}${selectedContact.id}`;
+
+        const clientSocket = new Socket(url_chat);
+
+        clientSocket.onopen = function(event) {
+          clientSocket.send(JSON.stringify(messageData));
+        }
+
+
+        clientSocket.onmessage = function(event) {
+          // clientSocket.send(messageData);
+          console.log(" on message ", event.data);
+        }
+
+
+
+        clientSocket.onoerror = function(e)  {
+          console.log(" on error", e);
+        }
+        clientSocket.onclose = function(e)  {
+          console.log(" on close ", e);
+        }
+
+      
         this.setState({
           message: ''
         })
       }
     }
+
+    // queryReceiver = (sender, receiver) => {
+    //     // axios.get(`http://localhost:4500/api/messages/${sender}/${receiver}/`).then(response => {
+    //     //     if(response){
+    //     //       this.setState({
+    //     //           receiverStories: response.data
+    //     //       });
+    //     //     }
+    //     // });
+    // }
+
+    handleChange = (e)  => {
+      this.setState({ [e.target.name]: e.target.value });
+    }
+
+    // handleEnter = (e) => {
+    //   const { message, selectedContact } = this.state;
+    //   if(e.charCode === 13){
+    //     const messageData = {
+    //       sender: this.state.UserObj.username, 
+    //       receiver: selectedContact.username,
+    //       message: message
+    //     }
+    //     axios.post(`http://localhost:4500/api/messages/`, messageData).then((response) => {
+    //       const sent = response.data;
+    //       this.state.receiverStories.push(sent);
+    //     }) 
+    //     this.setState({
+    //       message: ''
+    //     })
+    //   }
+    // }
 
     selectedContact = (selectedContact) => {
         const currentUserToken = this.state.UserObj
@@ -151,7 +221,7 @@ export default class Chat extends Component {
                   <p className="m-0">
                     <strong>{this.state.selectedContact.first_name}</strong>
                   </p>
-                  <div class="chat__header-meta">
+                  <div className="chat__header-meta">
                     <small>
                       <i>9 minutes ago</i>
                     </small>
