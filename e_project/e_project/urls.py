@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 from e_app import views
 from django.conf.urls import url
@@ -25,9 +27,12 @@ urlpatterns = [
     path('api/system/is_logged_in', views.IfLoggedIn.as_view(), name="loogged-in"),
 
 
-    #url(r'^api/messages/(?P<sender>[0-9a-f-]+)/(?P<receiver>[0-9a-f-]+)/', views.message_list, name='message-detail'), 
-    #path('api/messages/', views.message_list, name='message-list'), 
+    url(r'^api/messages/(?P<sender>[0-9a-f-]+)/(?P<receiver>[0-9a-f-]+)/', views.message_list, name='message-detail'), 
+    path('api/messages/', views.message_list, name='message-list'), 
     url(r'^api/users_message/(?P<id>[0-9a-f-]+)/$', views.user_list, name='user-detail'), 
     path('api/users_message/', views.user_list, name='user-list'),
    
 ]
+
+if settings.DEBUG:
+    urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

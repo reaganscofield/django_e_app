@@ -1,10 +1,6 @@
 import React, { Component } from 'react'
 import './Chat.css'
 import axios from 'axios'
-import JWTDecoder from 'jwt-decode';
-import io from "socket.io-client";
-
-
 import { w3cwebsocket as Socket} from "websocket";
 
 export default class Chat extends Component {
@@ -19,7 +15,9 @@ export default class Chat extends Component {
              message: '',
              UserObj: {},
         }
+
     }
+
 
     componentWillMount(){
         const User = JSON.parse(sessionStorage.getItem("User"));
@@ -28,13 +26,22 @@ export default class Chat extends Component {
           this.setState({ UserObj: UserObj });
         }
         this.queryUsers();
-
-        //const socket = 'ws://';
-       // console.log("my socket ", socket, window.location.host, window.location.pathname)
-
-        const { selectedContact } = this.state;
-        //this.queryReceiver(User.id, selectedContact.id);
     }
+
+
+    handleChange = (e)  => {
+      this.setState({ [e.target.name]: e.target.value });
+    }
+
+
+    selectedContact = (selectedContact) => {
+        const currentUserToken = this.state.UserObj
+        if(Object.entries(selectedContact).length > 0){
+            this.setState({ selectedContact });
+            this.queryReceiver(currentUserToken.id, selectedContact.id);
+        }
+    }
+
 
     queryUsers = () => {
         axios.get('http://localhost:4500/api/users_message/').then(response => {
@@ -46,25 +53,18 @@ export default class Chat extends Component {
         });
     }
 
-    queryReceiver = (sender, receiver) => {
-        const socket_host = 'ws://';
-        const host = '127.0.0.1:4500/' // window.location.host;
-        const path = 'api/messages/' // window.location.pathname;
-        const url_chat = `${socket_host}${host}${path}${receiver}`;
 
+    queryReceiver = (receiver) => {
+        const socket_host = 'ws://';
+        const host = '127.0.0.1:4500/';
+        const path = 'api/messages/';
+        const url_chat = `${socket_host}${host}${path}${receiver}`;
         const clientSocket = new Socket(url_chat);
 
-        clientSocket.onopen = (e) => {
-          // console.log("connection etablished", e);
+        clientSocket.onmessage = function(event) {
+          const message = JSON.parse(event.data);
+          console.log(message)
         }
-
-        // clientSocket.onmessage = (event) => {
-        //   console.log(event)
-        // }
-        //  console.log("uuu ", url_chat)
-
-
-     
     }
 
 
@@ -89,42 +89,34 @@ export default class Chat extends Component {
           clientSocket.send(JSON.stringify(messageData));
         }
 
-
         clientSocket.onmessage = function(event) {
-          // clientSocket.send(messageData);
-          console.log(" on message ", event.data);
+          console.log(" on message ", JSON.parse(event.data));
         }
-
-
 
         clientSocket.onoerror = function(e)  {
-          console.log(" on error", e);
-        }
-        clientSocket.onclose = function(e)  {
-          console.log(" on close ", e);
+          return e;
         }
 
-      
-        this.setState({
-          message: ''
-        })
+        clientSocket.onclose = function(e)  {
+          return e;
+        }
+
+        this.setState({ message: ''})
+
       }
     }
 
     // queryReceiver = (sender, receiver) => {
-    //     // axios.get(`http://localhost:4500/api/messages/${sender}/${receiver}/`).then(response => {
-    //     //     if(response){
-    //     //       this.setState({
-    //     //           receiverStories: response.data
-    //     //       });
-    //     //     }
-    //     // });
+    //     axios.get(`http://localhost:4500/api/messages/${sender}/${receiver}/`).then(response => {
+    //         if(response){
+    //           this.setState({
+    //               receiverStories: response.data
+    //           });
+    //         }
+    //     });
     // }
 
-    handleChange = (e)  => {
-      this.setState({ [e.target.name]: e.target.value });
-    }
-
+  
     // handleEnter = (e) => {
     //   const { message, selectedContact } = this.state;
     //   if(e.charCode === 13){
@@ -143,20 +135,8 @@ export default class Chat extends Component {
     //   }
     // }
 
-    selectedContact = (selectedContact) => {
-        const currentUserToken = this.state.UserObj
-        if(Object.entries(selectedContact).length > 0){
-            this.setState({ selectedContact });
-            this.queryReceiver(currentUserToken.id, selectedContact.id);
-        }
-    }
-    
-    render() {
 
-
-
-
-       
+    render() {   
         return (
             <div>
             <div id="chat">

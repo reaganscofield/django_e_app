@@ -19,3 +19,8 @@ DB_PASSWORD = 'postgres'
 DB_HOST = 'postgres'   # docker exposed
 DB_PORT = 5432
 ```
+
+```
+/etc/init.d/redis-server stop
+/etc/init.d/redis-server start
+```

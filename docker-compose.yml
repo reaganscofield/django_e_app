@@ -36,6 +36,6 @@ services:
             PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
             PGADMIN_DEFAULT_PASSWORD: admin
         restart: unless-stopped
-
+        
 volumes:
   postgres-data:
