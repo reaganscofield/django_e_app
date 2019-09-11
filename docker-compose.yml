@@ -10,9 +10,12 @@ services:
             - "4500:4500"
         depends_on:
             - postgres
+            - redis
     db:
         image: postgres
     # postgres pgadmin capabilities 
+    redis:
+        image: "redis:alpine"
     postgres:
         image: postgres
         hostname: postgres

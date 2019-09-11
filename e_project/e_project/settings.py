@@ -5,12 +5,12 @@ from environ_variables import *
 
 
 
-import environ
-env = environ.Env(
-    DEBUG=(bool, False),
-    SOME_VARIABLE=(str, '')
-)
-environ.Env.read_env(env.str('ENV_PATH', '../.././.env'))
+# import environ
+# env = environ.Env(
+#     DEBUG=(bool, False),
+#     SOME_VARIABLE=(str, '')
+# )
+# environ.Env.read_env(env.str('ENV_PATH', '../.././.env'))
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'e_app',
     'rest_framework.authtoken',
     'corsheaders'
+    
     
 ]
 
@@ -72,14 +73,14 @@ ASGI_APPLICATION =  "e_project.routing.application"
 
 #pip install asgi_redis
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("127.0.0.1", 6379 )],
-#         },
-#     },
-# }
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis://redis", 6379 )],
+        },
+    },
+}
 
 
 DATABASES = {

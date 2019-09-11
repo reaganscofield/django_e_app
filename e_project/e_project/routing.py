@@ -9,7 +9,7 @@ application = ProtocolTypeRouter({
         AuthMiddlewareStack(
             URLRouter(
                 [
-                    url(r'^api/messages/(?P<receiver>[0-9a-f-]+)', ChatConsumer)
+                    url(r'^api/messages/(?P<receiver>[0-9a-f-]+)/(?P<sender>[0-9a-f-]+)/', ChatConsumer)
                 ]
             )
         )

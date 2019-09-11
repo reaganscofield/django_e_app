@@ -18,34 +18,35 @@ class ChatConsumer(AsyncConsumer):
             "type": "websocket.accept"
         })
 
-        sender_username = "reaganscofield" # self.scope['user']
         receiver_id = self.scope['url_route']['kwargs']['receiver']
-        currentUser = await self.scope_user(sender_username)
-        sender_id = currentUser.id
-
+        sender_id = self.scope['url_route']['kwargs']['sender']
         message_obj = await self.get_messages_obj(sender_id, receiver_id)
-        room_chat = await self.room(sender_id, receiver_id)
 
+        for i in message_obj:
+            print(i)
+       
         await self.send({
             "type": "websocket.send",
             "text": json.dumps(message_obj)
         })
 
+        ##### check later for rooms 
+        #room_chat = await self.room(sender_id, receiver_id)
+
+
     async def websocket_receive(self, event):
-        get_dic = event.get("message", None)
+        get_dic = event.get("text", None)
 
         if get_dic is not None:
             data_parse = json.loads(get_dic)
-            sender = data_parse.get("sender")
-            receiver = data_parse.get("receiver")
-            message = data_parse.get("message")
 
             request = {
-                "sender": sender,
-                "receiver": receiver,
-                "message": message
+                "sender": data_parse.get("sender"),
+                "receiver":  data_parse.get("receiver"),
+                "message": data_parse.get("message")
             }
-            createdObj = await self.object_create(response)
+
+            createdObj = await self.object_create(request)
 
             await self.send({
                 "type": "websocket.accept"
@@ -59,6 +60,7 @@ class ChatConsumer(AsyncConsumer):
     async def websocket_disconnect(self, event):
         print(f"event disconnected {event}")
 
+
     @database_sync_to_async
     def get_messages_obj(self, sender, receiver):
         messages = ( 
@@ -67,7 +69,6 @@ class ChatConsumer(AsyncConsumer):
         )
         serializer = MessageSerializer(messages, many=True)
         return serializer.data
-
 
     @database_sync_to_async
     def object_create(self, request):
@@ -79,25 +80,5 @@ class ChatConsumer(AsyncConsumer):
        objCreate.save()
 
        return objCreate
-
-
-    @database_sync_to_async
-    def room(self, sender, receiver):
-        messages = ( 
-            Message.objects.filter(sender=sender).filter(receiver=receiver).count() | 
-            Message.objects.filter(sender=receiver).filter(receiver=sender).count()
-        )
-
-        return messages
-
-
-    @database_sync_to_async
-    def scope_user(self, sender_username):
-        User = Users.objects.get(username=sender_username)
-
-        return User
-
-
-
 
     

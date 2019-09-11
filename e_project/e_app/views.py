@@ -1,4 +1,6 @@
 import datetime
+from builtins import int
+
 from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
@@ -32,9 +34,28 @@ from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import Message                                            
-from .serializers import MessageSerializer  
+from .serializers import MessageSerializer
 
 
+def update(request, pk=None):
+    getObj = Products.objects.get(id=pk)
+    if getObj:
+        getObj.name = request.data["name"]
+        getObj.price = request.data["price"]
+        getObj.file = request.data["file"]
+        getObj.updated_at = datetime.datetime.now()
+        getObj.save()
+        return Response({"success": getObj}, status=status.HTTP_200_OK)
+
+    raise Http404
+
+
+def create(request):
+    serializer = SerializersProducts(data = request.data, context = {'request': request})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductSerializer(viewsets.ModelViewSet):
@@ -44,28 +65,7 @@ class ProductSerializer(viewsets.ModelViewSet):
 
     def get_queryset(self):
          return Products.objects.all()
- 
 
-    def create(self, request):
-        serializer = SerializersProducts(data = request.data, context = {'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
- 
-    def update(self, request, pk=None):
-        getObj = Products.objects.get(id=pk)
-        if getObj:
-            getObj.name = request.data["name"]
-            getObj.price = request.data["price"]
-            getObj.file = request.data["file"]
-            getObj.updated_at = datetime.datetime.now()
-            getObj.save()
-            return Response({"success": getObj}, status=status.HTTP_200_OK)
-
-        raise Http404
-  
     def destroy(self, info, **kwargs):
         try:
             if kwargs["pk"]:
@@ -124,16 +124,17 @@ class AddCardView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+def list(request):
+    queryset = Bought.objects.filter(customer_id=request.user)
+    serializer = SerializersBought(queryset, many=True)
+    return Response(serializer.data)
+
 
 class BoughtView(generics.ListAPIView):
     queryset = Bought.objects.all()
     serializer_class  = SerializersBought
     permission_classes = [IsAuthenticated]
 
-    def list(self, request):
-        queryset = Bought.objects.filter(customer_id=request.user)
-        serializer = SerializersBought(queryset, many=True)
-        return Response(serializer.data)
 
 class BoughtCreate(generics.CreateAPIView):
     queryset = Bought.objects.all()

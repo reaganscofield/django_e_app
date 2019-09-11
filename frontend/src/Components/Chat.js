@@ -16,8 +16,36 @@ export default class Chat extends Component {
              UserObj: {},
         }
 
-    }
 
+        const updateStateMessage = (message, user) => {
+          this.setState({ 
+            selectedContact: user,
+            receiverStories: JSON.parse(message) 
+          });
+        }
+
+        this.getUser = (SelectedUser) => {
+          const id = SelectedUser.id;
+          const { id: sender_id } = this.state.UserObj;
+
+          const socket_host = 'ws://';
+          const host = '127.0.0.1:4500/';
+          const path = 'api/messages/';
+          const url_chat = `${socket_host}${host}${path}${id}/${sender_id}/`;
+
+          const clientSocket = new Socket(url_chat);
+          clientSocket.onmessage = (event) => {
+            updateStateMessage(event.data, SelectedUser);
+          }
+          clientSocket.onoerror = (event) =>  {
+            return event;
+          }
+          clientSocket.onclose = (event) =>  {
+            return event;
+          }
+        }
+
+    }
 
     componentWillMount(){
         const User = JSON.parse(sessionStorage.getItem("User"));
@@ -33,16 +61,6 @@ export default class Chat extends Component {
       this.setState({ [e.target.name]: e.target.value });
     }
 
-
-    selectedContact = (selectedContact) => {
-        const currentUserToken = this.state.UserObj
-        if(Object.entries(selectedContact).length > 0){
-            this.setState({ selectedContact });
-            this.queryReceiver(currentUserToken.id, selectedContact.id);
-        }
-    }
-
-
     queryUsers = () => {
         axios.get('http://localhost:4500/api/users_message/').then(response => {
             if(response){
@@ -53,90 +71,47 @@ export default class Chat extends Component {
         });
     }
 
-
-    queryReceiver = (receiver) => {
-        const socket_host = 'ws://';
-        const host = '127.0.0.1:4500/';
-        const path = 'api/messages/';
-        const url_chat = `${socket_host}${host}${path}${receiver}`;
-        const clientSocket = new Socket(url_chat);
-
-        clientSocket.onmessage = function(event) {
-          const message = JSON.parse(event.data);
-          console.log(message)
-        }
-    }
-
-
     handleEnter = (e) => {
-      const { message, selectedContact } = this.state;
-      if(e.charCode === 13){
+      
+      const { id: sender_id } = this.state.UserObj;
+      const { id: receiver_id } = this.state.selectedContact;
+      const { message } = this.state;
 
-        const messageData = {
-          sender: this.state.UserObj.username, 
-          receiver: selectedContact.username,
-          message: message
-        }
+      if(e.charCode === 13){
 
         const socket_host = 'ws://';
         const host = '127.0.0.1:4500/' 
         const path = 'api/messages/';
-        const url_chat = `${socket_host}${host}${path}${selectedContact.id}`;
+        const url_chat = `${socket_host}${host}${path}${receiver_id}/${sender_id}/`;
 
         const clientSocket = new Socket(url_chat);
 
-        clientSocket.onopen = function(event) {
+        const messageData = {
+          sender: sender_id, 
+          receiver: receiver_id,
+          message: message
+        }
+
+        clientSocket.onopen = (event) => {
           clientSocket.send(JSON.stringify(messageData));
         }
 
-        clientSocket.onmessage = function(event) {
-          console.log(" on message ", JSON.parse(event.data));
+        clientSocket.onoerror = (event) =>  {
+          return event;
         }
 
-        clientSocket.onoerror = function(e)  {
-          return e;
-        }
-
-        clientSocket.onclose = function(e)  {
-          return e;
+        clientSocket.onclose = (event) =>  {
+          return event;
         }
 
         this.setState({ message: ''})
 
       }
     }
-
-    // queryReceiver = (sender, receiver) => {
-    //     axios.get(`http://localhost:4500/api/messages/${sender}/${receiver}/`).then(response => {
-    //         if(response){
-    //           this.setState({
-    //               receiverStories: response.data
-    //           });
-    //         }
-    //     });
-    // }
-
-  
-    // handleEnter = (e) => {
-    //   const { message, selectedContact } = this.state;
-    //   if(e.charCode === 13){
-    //     const messageData = {
-    //       sender: this.state.UserObj.username, 
-    //       receiver: selectedContact.username,
-    //       message: message
-    //     }
-    //     axios.post(`http://localhost:4500/api/messages/`, messageData).then((response) => {
-    //       const sent = response.data;
-    //       this.state.receiverStories.push(sent);
-    //     }) 
-    //     this.setState({
-    //       message: ''
-    //     })
-    //   }
-    // }
-
-
+    
     render() {   
+      console.log("receiverrr ", this.state.receiverStories)
+      console.log(" check it out ", sessionStorage.getItem('UserObj').username)
         return (
             <div>
             <div id="chat">
@@ -167,22 +142,28 @@ export default class Chat extends Component {
            
               <div id="conversations__list" className="scroll-style-1">
                 {this.state.users.map((element, index) => (
-                    <div key={index} onClick={() => this.selectedContact(element)} className="p-2 conversations__item cusror-pointer" >
+                   <div>
+                     {element.username === this.state.UserObj.username ?
+                        <div />
+                        :
+                        <div key={index} onClick={() => this.getUser(element)} className="p-2 conversations__item cusror-pointer" >
                         <span className="d-flex flex-row justify-content-around text-dark">
-                      <div className="chat__item__avatar bg-dark mr-2 align-self-center" />
-                      <div className="conversations__meta-info align-self-center p-2">
-                        <p className="m-0 align-self-center">{element.first_name}</p>
-                        <small className="align-self-center">
-                          <i>Lorem ipsum dolor..</i>
-                        </small>
-                      </div>
-                      <p className=" m-0 text-right">
-                        <small>
-                          <i>10 minutes</i>
-                        </small>
-                      </p>
-                    </span>
-                  </div>
+                            <div className="chat__item__avatar bg-dark mr-2 align-self-center" />
+                            <div className="conversations__meta-info align-self-center p-2">
+                              <p className="m-0 align-self-center">{element.first_name}</p>
+                              <small className="align-self-center">
+                                <i>Lorem ipsum dolor..</i>
+                              </small>
+                            </div>
+                            <p className=" m-0 text-right">
+                              <small>
+                                <i>10 minutes</i>
+                              </small>
+                            </p>
+                          </span>
+                        </div>
+                     }
+                   </div>
                 ))}
               </div>
 
@@ -221,7 +202,7 @@ export default class Chat extends Component {
           <div className="chat-body p-2  scroll-style-1">
             {this.state.receiverStories.map((element, index) => (
               <div key={index}>
-                  {element.sender === "reaganscofield" ?
+                  {element.sender === this.state.UserObj.username ?
                      <div className="chat__item-wrapper d-flex flex-row mb-3">
                      <div className="chat__item chat__item-right ml-auto text-right">
                          <p className="mb-0">
